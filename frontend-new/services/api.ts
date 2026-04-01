@@ -40,11 +40,33 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'customer' | 'manufacturer' | 'admin';
+  role: 'owner' | 'manufacturer' | 'distributor' | 'retailer' | 'customer' | 'admin';
   company_name?: string;
   license_number?: string;
   address?: string;
+  is_active?: boolean;
+  invited_by?: string;
   created_at: string;
+  updated_at?: string;
+}
+
+export interface Invitation {
+  _id: string;
+  email: string;
+  role: 'manufacturer' | 'distributor' | 'retailer';
+  invited_by: string;
+  company_name?: string;
+  status: 'pending' | 'accepted' | 'expired';
+  created_at: string;
+  accepted_at?: string;
+}
+
+export interface InvitationCheck {
+  success: boolean;
+  has_account: boolean;
+  has_invitation: boolean;
+  invitation?: Invitation;
+  message: string;
 }
 
 export interface Drug {
@@ -120,8 +142,10 @@ export interface ScanLocation {
   scanned_by_id: string;
   scanned_by_role: string;
   location: {
-    latitude?: number;
-    longitude?: number;
+    coordinates?: {
+      latitude: number;
+      longitude: number;
+    };
     address?: string;
   };
   scan_type: string;
@@ -133,6 +157,12 @@ export interface ScanLocation {
     company_name?: string;
     email: string;
     role: string;
+  };
+  drug_info?: {
+    drug_name: string;
+    batch_number: string;
+    manufacturer?: string;
+    expiry_date?: string;
   };
 }
 
@@ -147,12 +177,29 @@ export const authAPI = {
     name: string;
     email: string;
     password: string;
-    role: 'customer' | 'manufacturer';
+    role: 'customer' | 'manufacturer' | 'owner';
     company_name?: string;
     license_number?: string;
     address?: string;
   }) => {
     const response = await api.post('/auth/register', data);
+    return response.data;
+  },
+
+  checkInvitation: async (email: string) => {
+    const response = await api.post('/auth/check-invitation', { email });
+    return response.data;
+  },
+
+  setupPassword: async (data: {
+    email: string;
+    password: string;
+    name: string;
+    company_name?: string;
+    license_number?: string;
+    address?: string;
+  }) => {
+    const response = await api.post('/auth/setup-password', data);
     return response.data;
   },
 
@@ -327,6 +374,141 @@ export const manufacturerAPI = {
       status,
       admin_notes: adminNotes,
     });
+    return response.data;
+  },
+};
+
+export const ownerAPI = {
+  sendInvitation: async (data: {
+    email: string;
+    role: 'manufacturer' | 'distributor' | 'retailer';
+    company_name?: string;
+  }) => {
+    const response = await api.post('/owner/invite', data);
+    return response.data;
+  },
+
+  getInvitations: async (status?: string, page: number = 1, limit: number = 20) => {
+    const response = await api.get('/owner/invitations', {
+      params: { status, page, limit },
+    });
+    return response.data;
+  },
+
+  deleteInvitation: async (invitationId: string) => {
+    const response = await api.delete(`/owner/invitations/${invitationId}`);
+    return response.data;
+  },
+
+  getUsers: async (role?: string, page: number = 1, limit: number = 20) => {
+    const response = await api.get('/owner/users', {
+      params: { role, page, limit },
+    });
+    return response.data;
+  },
+
+  activateUser: async (userId: string) => {
+    const response = await api.post(`/owner/users/${userId}/activate`);
+    return response.data;
+  },
+
+  deactivateUser: async (userId: string) => {
+    const response = await api.post(`/owner/users/${userId}/deactivate`);
+    return response.data;
+  },
+
+  getStatistics: async () => {
+    const response = await api.get('/owner/statistics');
+    return response.data;
+  },
+};
+
+export const distributorAPI = {
+  inviteRetailer: async (data: {
+    email: string;
+    company_name?: string;
+  }) => {
+    const response = await api.post('/distributor/invite-retailer', data);
+    return response.data;
+  },
+
+  getInvitations: async () => {
+    const response = await api.get('/distributor/invitations');
+    return response.data;
+  },
+
+  deleteInvitation: async (invitationId: string) => {
+    const response = await api.delete(`/distributor/invitations/${invitationId}`);
+    return response.data;
+  },
+};
+
+export const supplyChainAPI = {
+  // Manufacturer scan
+  manufacturerScan: async (data: {
+    serial_number: string;
+    latitude?: number;
+    longitude?: number;
+    address?: string;
+    notes?: string;
+  }) => {
+    const response = await api.post('/supply-chain/manufacturer/scan', data);
+    return response.data;
+  },
+
+  getManufacturerScans: async (limit: number = 100) => {
+    const response = await api.get('/supply-chain/manufacturer/scans', {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  // Distributor scan
+  distributorScan: async (data: {
+    serial_number: string;
+    latitude?: number;
+    longitude?: number;
+    address?: string;
+    notes?: string;
+  }) => {
+    const response = await api.post('/supply-chain/distributor/scan', data);
+    return response.data;
+  },
+
+  getDistributorScans: async (limit: number = 100) => {
+    const response = await api.get('/supply-chain/distributor/scans', {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  // Retailer scan
+  retailerScan: async (data: {
+    serial_number: string;
+    latitude?: number;
+    longitude?: number;
+    address?: string;
+    notes?: string;
+  }) => {
+    const response = await api.post('/supply-chain/retailer/scan', data);
+    return response.data;
+  },
+
+  getRetailerScans: async (limit: number = 100) => {
+    const response = await api.get('/supply-chain/retailer/scans', {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  // Common endpoints
+  getProductJourney: async (serialNumber: string) => {
+    const response = await api.get(`/supply-chain/product/journey/${serialNumber}`);
+    return response.data;
+  },
+
+  getStatistics: async () => {
+    const response = await api.get('/supply-chain/statistics');
     return response.data;
   },
 };

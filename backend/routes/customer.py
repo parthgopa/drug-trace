@@ -12,7 +12,7 @@ customer_bp = Blueprint('customer', __name__, url_prefix='/customer')
 
 @customer_bp.route('/verify/<serial_number>', methods=['GET'])
 @token_required
-def verify_drug(serial_number):
+def verify_drug(current_user, serial_number):
     try:
         user_id = request.current_user['user_id']
         
@@ -67,7 +67,7 @@ def verify_drug(serial_number):
 @customer_bp.route('/history', methods=['GET'])
 @token_required
 @role_required('customer', 'manufacturer', 'admin')
-def get_scan_history():
+def get_scan_history(current_user):
     try:
         user_id = request.current_user['user_id']
         page = int(request.args.get('page', 1))
@@ -97,7 +97,7 @@ def get_scan_history():
 @customer_bp.route('/report', methods=['POST'])
 @token_required
 @role_required('customer', 'manufacturer', 'admin')
-def submit_report():
+def submit_report(current_user):
     try:
         data = request.get_json()
         user_id = request.current_user['user_id']
@@ -134,7 +134,7 @@ def submit_report():
 @customer_bp.route('/reports', methods=['GET'])
 @token_required
 @role_required('customer', 'manufacturer', 'admin')
-def get_user_reports():
+def get_user_reports(current_user):
     try:
         user_id = request.current_user['user_id']
         page = int(request.args.get('page', 1))
@@ -157,7 +157,7 @@ def get_user_reports():
 @customer_bp.route('/product/journey/<serial_number>', methods=['GET'])
 @token_required
 @role_required('customer', 'manufacturer', 'admin')
-def get_product_journey(serial_number):
+def get_product_journey(current_user, serial_number):
     try:
         # Get product journey/history
         journey = ScanLocation.get_product_journey(serial_number)

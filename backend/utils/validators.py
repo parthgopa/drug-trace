@@ -6,15 +6,22 @@ class UserRegistration(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=6)
-    role: Literal['customer', 'manufacturer', 'admin'] = 'customer'
+    role: Literal['customer', 'manufacturer', 'owner', 'admin'] = 'customer'
     company_name: Optional[str] = None
     license_number: Optional[str] = None
     address: Optional[str] = None
 
-    @validator('company_name', 'license_number')
-    def validate_manufacturer_fields(cls, v, values):
+    @validator('company_name')
+    def validate_company_name(cls, v, values):
+        role = values.get('role')
+        if role in ['manufacturer', 'owner'] and not v:
+            raise ValueError(f'Company name is required for {role}s')
+        return v
+    
+    @validator('license_number')
+    def validate_license_number(cls, v, values):
         if values.get('role') == 'manufacturer' and not v:
-            raise ValueError('Company name and license number are required for manufacturers')
+            raise ValueError('License number is required for manufacturers')
         return v
 
 class UserLogin(BaseModel):

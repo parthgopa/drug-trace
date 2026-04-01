@@ -19,19 +19,38 @@ class Database:
         return self._db
 
     def _create_indexes(self):
+        # Users collection
         self._db.users.create_index([("email", ASCENDING)], unique=True)
+        self._db.users.create_index([("role", ASCENDING)])
+        
+        # Drugs collection
         self._db.drugs.create_index([("serial_number", ASCENDING)], unique=True)
         self._db.drugs.create_index([("batch_number", ASCENDING)])
         self._db.drugs.create_index([("manufacturer_id", ASCENDING)])
+        
+        # Scan logs collection
         self._db.scan_logs.create_index([("user_id", ASCENDING)])
         self._db.scan_logs.create_index([("scanned_at", ASCENDING)])
+        
+        # Reports collection
         self._db.reports.create_index([("user_id", ASCENDING)])
         self._db.reports.create_index([("serial_number", ASCENDING)])
         self._db.reports.create_index([("created_at", ASCENDING)])
         self._db.reports.create_index([("status", ASCENDING)])
+        
+        # Scan locations collection
         self._db.scan_locations.create_index([("serial_number", ASCENDING)])
         self._db.scan_locations.create_index([("scanned_by_id", ASCENDING)])
+        self._db.scan_locations.create_index([("scanned_by_role", ASCENDING)])
         self._db.scan_locations.create_index([("scanned_at", ASCENDING)])
+        self._db.scan_locations.create_index([("scan_type", ASCENDING)])
+        
+        # Invitations collection
+        self._db.invitations.create_index([("email", ASCENDING)])
+        self._db.invitations.create_index([("status", ASCENDING)])
+        self._db.invitations.create_index([("invited_by", ASCENDING)])
+        self._db.invitations.create_index([("role", ASCENDING)])
+        self._db.invitations.create_index([("created_at", ASCENDING)])
 
     def get_db(self):
         if self._db is None:

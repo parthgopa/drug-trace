@@ -16,7 +16,7 @@ import { theme } from '@/constants/theme';
 import { authAPI, storageAPI } from '@/services/api';
 
 export default function SignupScreen() {
-  const [role, setRole] = useState<'customer' | 'manufacturer'>('customer');
+  const [role, setRole] = useState<'customer' | 'manufacturer' | 'owner'>('customer');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -66,6 +66,12 @@ export default function SignupScreen() {
       }
     }
 
+    if (role === 'owner') {
+      if (!formData.companyName.trim()) {
+        newErrors.companyName = 'Company name is required for owners';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -80,8 +86,10 @@ export default function SignupScreen() {
         email: formData.email.trim(),
         password: formData.password,
         role,
-        ...(role === 'manufacturer' && {
+        ...((role === 'manufacturer' || role === 'owner') && {
           company_name: formData.companyName.trim(),
+        }),
+        ...(role === 'manufacturer' && {
           license_number: formData.licenseNumber.trim(),
           address: formData.address.trim() || undefined,
         }),
@@ -94,10 +102,18 @@ export default function SignupScreen() {
           {
             text: 'OK',
             onPress: () => {
-              if (response.role === 'customer') {
-                router.replace('/customer/dashboard');
-              } else if (response.role === 'manufacturer') {
-                router.replace('/manufacturer/dashboard');
+              switch (response.role) {
+                case 'owner':
+                  router.replace('/owner/dashboard' as any);
+                  break;
+                case 'manufacturer':
+                  router.replace('/manufacturer/dashboard');
+                  break;
+                case 'customer':
+                  router.replace('/customer/dashboard');
+                  break;
+                default:
+                  router.replace('/customer/dashboard');
               }
             },
           },
@@ -153,6 +169,19 @@ export default function SignupScreen() {
               Manufacturer
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.roleButton, role === 'owner' && styles.roleButtonActive]}
+            onPress={() => setRole('owner')}
+          >
+            <Text
+              style={[
+                styles.roleButtonText,
+                role === 'owner' && styles.roleButtonTextActive,
+              ]}
+            >
+              Owner
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.form}>
@@ -195,6 +224,17 @@ export default function SignupScreen() {
             icon="lock-closed-outline"
             error={errors.confirmPassword}
           />
+
+          {role === 'owner' && (
+            <CustomInput
+              label="Company Name"
+              placeholder="Enter your company name"
+              value={formData.companyName}
+              onChangeText={(text) => updateField('companyName', text)}
+              icon="business-outline"
+              error={errors.companyName}
+            />
+          )}
 
           {role === 'manufacturer' && (
             <>

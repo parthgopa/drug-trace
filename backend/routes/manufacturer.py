@@ -24,7 +24,7 @@ manufacturer_bp = Blueprint('manufacturer', __name__, url_prefix='/manufacturer'
 @manufacturer_bp.route('/drug/generate', methods=['POST'])
 @token_required
 @role_required('manufacturer', 'admin')
-def generate_drugs():
+def generate_drugs(current_user):
     try:
         print("=== Drug Generation Request ===")
         data = request.get_json()
@@ -101,7 +101,7 @@ def generate_drugs():
 @manufacturer_bp.route('/drugs', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_manufacturer_drugs():
+def get_manufacturer_drugs(current_user):
     try:
         user_id = request.current_user['user_id']
         page = int(request.args.get('page', 1))
@@ -131,7 +131,7 @@ def get_manufacturer_drugs():
 @manufacturer_bp.route('/batches', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_manufacturer_batches():
+def get_manufacturer_batches(current_user):
     try:
         user_id = request.current_user['user_id']
         
@@ -151,7 +151,7 @@ def get_manufacturer_batches():
 @manufacturer_bp.route('/recall', methods=['POST'])
 @token_required
 @role_required('manufacturer', 'admin')
-def recall_batch():
+def recall_batch(current_user):
     try:
         data = request.get_json()
         user_id = request.current_user['user_id']
@@ -190,7 +190,7 @@ def recall_batch():
 @manufacturer_bp.route('/batch/<batch_number>/qr-codes', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_batch_qr_codes(batch_number):
+def get_batch_qr_codes(current_user, batch_number):
     try:
         user_id = request.current_user['user_id']
         
@@ -235,7 +235,7 @@ def get_batch_qr_codes(batch_number):
 @manufacturer_bp.route('/batch/<batch_number>', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_batch_details(batch_number):
+def get_batch_details(current_user, batch_number):
     try:
         user_id = request.current_user['user_id']
         
@@ -269,7 +269,7 @@ def get_batch_details(batch_number):
 @manufacturer_bp.route('/stats', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_manufacturer_stats():
+def get_manufacturer_stats(current_user):
     try:
         user_id = request.current_user['user_id']
         
@@ -309,7 +309,7 @@ def get_manufacturer_stats():
 @manufacturer_bp.route('/batch/<batch_number>/export', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def export_batch(batch_number):
+def export_batch(current_user, batch_number):
     try:
         user_id = request.current_user['user_id']
         export_format = request.args.get('format', 'pdf').lower()
@@ -422,7 +422,7 @@ def export_batch(batch_number):
 @manufacturer_bp.route('/batch/<batch_number>/void', methods=['POST'])
 @token_required
 @role_required('manufacturer', 'admin')
-def void_batch(batch_number):
+def void_batch(current_user, batch_number):
     try:
         user_id = request.current_user['user_id']
         
@@ -450,7 +450,7 @@ def void_batch(batch_number):
 @manufacturer_bp.route('/batch/<batch_number>/duplicate', methods=['POST'])
 @token_required
 @role_required('manufacturer', 'admin')
-def duplicate_batch(batch_number):
+def duplicate_batch(current_user, batch_number):
     try:
         user_id = request.current_user['user_id']
         data = request.get_json() or {}
@@ -503,7 +503,7 @@ def duplicate_batch(batch_number):
 @manufacturer_bp.route('/batch/<batch_number>', methods=['DELETE'])
 @token_required
 @role_required('manufacturer', 'admin')
-def soft_delete_batch(batch_number):
+def soft_delete_batch(current_user, batch_number):
     try:
         user_id = request.current_user['user_id']
         
@@ -531,7 +531,7 @@ def soft_delete_batch(batch_number):
 @manufacturer_bp.route('/scan/record', methods=['POST'])
 @token_required
 @role_required('manufacturer', 'admin')
-def record_scan():
+def record_scan(current_user):
     try:
         user_id = request.current_user['user_id']
         print(user_id)
@@ -588,7 +588,7 @@ def record_scan():
 @manufacturer_bp.route('/analytics/scans', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_scan_analytics():
+def get_scan_analytics(current_user):
     try:
         user_id = request.current_user['user_id']
         
@@ -609,7 +609,7 @@ def get_scan_analytics():
 @manufacturer_bp.route('/scans/recent', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_recent_scans():
+def get_recent_scans(current_user):
     try:
         user_id = request.current_user['user_id']
         limit = request.args.get('limit', 50, type=int)
@@ -632,7 +632,7 @@ def get_recent_scans():
 @manufacturer_bp.route('/reports', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_manufacturer_reports():
+def get_manufacturer_reports(current_user):
     """
     Optimized endpoint to get reports for drugs belonging to the manufacturer.
     Uses aggregation pipeline for efficient querying.
@@ -674,7 +674,7 @@ def get_manufacturer_reports():
 @manufacturer_bp.route('/reports/statistics', methods=['GET'])
 @token_required
 @role_required('manufacturer', 'admin')
-def get_manufacturer_report_statistics():
+def get_manufacturer_report_statistics(current_user):
     """
     Get report statistics for manufacturer.
     """
@@ -698,7 +698,7 @@ def get_manufacturer_report_statistics():
 @manufacturer_bp.route('/reports/<report_id>/status', methods=['PUT'])
 @token_required
 @role_required('manufacturer', 'admin')
-def update_report_status(report_id):
+def update_report_status(current_user, report_id):
     """
     Update report status (resolve/reject).
     Manufacturers can update status of reports on their drugs.

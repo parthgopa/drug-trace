@@ -184,14 +184,14 @@ export default function ManufacturerDashboard() {
 
           <TouchableOpacity
             style={[styles.actionCard, theme.shadows.md]}
-            onPress={() => router.push('/manufacturer/track-scan' as any)}
+            onPress={() => router.push('/manufacturer/scan-product' as any)}
           >
             <View style={[styles.actionIconLarge, { backgroundColor: theme.colors.info }]}>
               <Ionicons name="scan-outline" size={32} color={theme.colors.text.inverse} />
             </View>
             <View style={styles.actionContent}>
-              <Text style={styles.actionTitle}>Track Product Scan</Text>
-              <Text style={styles.actionSubtitle}>Record product movement in supply chain</Text>
+              <Text style={styles.actionTitle}>Scan Product</Text>
+              <Text style={styles.actionSubtitle}>Track product with geo-location</Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color={theme.colors.text.tertiary} />
           </TouchableOpacity>

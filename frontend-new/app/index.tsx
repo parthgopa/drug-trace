@@ -16,14 +16,29 @@ export default function Index() {
       const { token, role } = await storageAPI.getAuthData();
 
       if (token && role) {
-        if (role === 'customer') {
-          router.replace('/customer/dashboard' as any);
-        } else if (role === 'manufacturer') {
-          router.replace('/manufacturer/dashboard' as any);
-        } else {
-          router.replace('/auth/login' as any);
+        // Route based on user role
+        switch (role) {
+          case 'owner':
+            router.replace('/owner/dashboard' as any);
+            break;
+          case 'manufacturer':
+            router.replace('/manufacturer/dashboard' as any);
+            break;
+          case 'distributor':
+            router.replace('/distributor/dashboard' as any);
+            break;
+          case 'retailer':
+            router.replace('/retailer/dashboard' as any);
+            break;
+          case 'customer':
+            router.replace('/customer/dashboard' as any);
+            break;
+          default:
+            // Unknown role, go to login
+            router.replace('/auth/login' as any);
         }
       } else {
+        // No auth data, go to login
         router.replace('/auth/login' as any);
       }
     } catch (error) {

@@ -51,6 +51,7 @@ def token_required(f):
         try:
             payload = decode_token(token)
             request.current_user = payload
+            kwargs['current_user'] = payload
         except Exception as e:
             return jsonify({'error': str(e)}), 401
         
