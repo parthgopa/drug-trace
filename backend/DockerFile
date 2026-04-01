@@ -1,0 +1,33 @@
+# Use Python 3.9 slim image
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create .env file from .env.example if it doesn't exist
+RUN if [ ! -f .env ]; then cp .env.example .env || true; fi
+
+# Expose port (will be 1500 from docker-compose mapping)
+EXPOSE 1500
+
+# Set environment variable for Flask
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
+ENV PORT=1500
+
+# Run the application with gunicorn using PORT from environment
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-1500} --workers 4 --timeout 120 wsgi:app"]
