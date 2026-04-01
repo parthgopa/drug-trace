@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiUsers, FiCheckCircle, FiXCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiSearch, FiUsers, FiCheckCircle, FiXCircle, FiRefreshCw, FiFilter } from 'react-icons/fi';
 import { adminAPI } from '../services/api';
 import Table from '../components/Table';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import { formatDate } from '../utils/formatters';
+import { useOwner } from '../context/OwnerContext';
 
 const Customers = () => {
+  const { selectedOwner } = useOwner();
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -120,6 +122,23 @@ const Customers = () => {
         <div className="page-title">
           <h1>Customers Management</h1>
           <p>Manage all customer accounts in the system</p>
+          {selectedOwner && (
+            <div style={{ 
+              marginTop: '0.5rem', 
+              padding: '0.5rem 1rem', 
+              backgroundColor: 'var(--info-50, #e0f2fe)', 
+              border: '1px solid var(--info-200, #bae6fd)',
+              borderRadius: 'var(--radius-md)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <FiFilter style={{ color: 'var(--info-600, #0284c7)' }} />
+              <span style={{ fontSize: '0.875rem', color: 'var(--info-700, #0369a1)' }}>
+                Note: Customer filtering by owner not available (customers are independent users)
+              </span>
+            </div>
+          )}
         </div>
         <Button
           onClick={loadCustomers}

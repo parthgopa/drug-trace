@@ -16,10 +16,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/users', icon: FiUsers, label: 'Users Management' },
     { path: '/owners', icon: FiUserCheck, label: 'Owners' },
     { path: '/customers', icon: FiUsers, label: 'Customers' },
-    // { path: '/drugs', icon: FiPackage, label: 'Drugs' },
-    // { path: '/reports', icon: FiAlertCircle, label: 'Reports' },
-    // { path: '/invitations', icon: FiMail, label: 'Invitations' },
-    // { path: '/scans', icon: FiActivity, label: 'Scan Logs' },
+    { path: '/drugs', icon: FiPackage, label: 'Drugs' },
+    { path: '/reports', icon: FiAlertCircle, label: 'Reports' },
+    { path: '/invitations', icon: FiMail, label: 'Invitations' },
+    { path: '/scans', icon: FiActivity, label: 'Scan Logs' },
   ];
 
   return (

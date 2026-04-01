@@ -19,12 +19,51 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @role_required('admin')
 def get_all_reports(current_user):
     try:
+        from utils.database import get_database
         page = int(request.args.get('page', 1))
         limit = int(request.args.get('limit', 100))
         skip = (page - 1) * limit
+        owner_id = request.args.get('owner_id')  # Optional owner filter
         
-        reports = Report.get_all(skip=skip, limit=limit)
-        total = Report.count_by_status()
+        print(f"DEBUG - get_all_reports: owner_id={owner_id}, page={page}, limit={limit}")
+        
+        if owner_id:
+            # Find all manufacturers invited by this owner
+            db = get_database()
+            manufacturers = list(db.users.find({
+                'role': 'manufacturer',
+                'invited_by': owner_id
+            }, {'_id': 1}))
+            manufacturer_ids = [str(m['_id']) for m in manufacturers]
+            
+            print(f"DEBUG - Found {len(manufacturer_ids)} manufacturers for owner: {manufacturer_ids}")
+            
+            # Get all serial numbers for drugs from these manufacturers
+            if manufacturer_ids:
+                drugs = list(db.drugs.find({'manufacturer_id': {'$in': manufacturer_ids}}, {'serial_number': 1}))
+                serial_numbers = [drug['serial_number'] for drug in drugs]
+                
+                print(f"DEBUG - Found {len(serial_numbers)} drugs for these manufacturers")
+                
+                # Filter reports by these serial numbers
+                if serial_numbers:
+                    reports = list(db.reports.find({'serial_number': {'$in': serial_numbers}})
+                                 .sort('created_at', -1)
+                                 .skip(skip)
+                                 .limit(limit))
+                    total = db.reports.count_documents({'serial_number': {'$in': serial_numbers}})
+                else:
+                    reports = []
+                    total = 0
+            else:
+                reports = []
+                total = 0
+            
+            print(f"DEBUG - Filtered reports count: {len(reports)}, total: {total}")
+        else:
+            reports = Report.get_all(skip=skip, limit=limit)
+            total = Report.count_by_status()
+            print(f"DEBUG - All reports count: {len(reports)}, total: {total}")
         
         return jsonify({
             'success': True,
@@ -38,6 +77,9 @@ def get_all_reports(current_user):
         }), 200
         
     except Exception as e:
+        print(f"Error in get_all_reports: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -82,11 +124,38 @@ def update_report_status(current_user, report_id):
 @role_required('admin')
 def get_all_drugs(current_user):
     try:
+        from utils.database import get_database
         page = int(request.args.get('page', 1))
         limit = int(request.args.get('limit', 50))
         skip = (page - 1) * limit
+        owner_id = request.args.get('owner_id')  # Optional owner filter
         
-        drugs = Drug.get_all(skip=skip, limit=limit)
+        print(f"DEBUG - get_all_drugs: owner_id={owner_id}, page={page}, limit={limit}")
+        
+        if owner_id:
+            # Find all manufacturers invited by this owner
+            db = get_database()
+            manufacturers = list(db.users.find({
+                'role': 'manufacturer',
+                'invited_by': owner_id
+            }, {'_id': 1}))
+            manufacturer_ids = [str(m['_id']) for m in manufacturers]
+            
+            print(f"DEBUG - Found {len(manufacturer_ids)} manufacturers for owner: {manufacturer_ids}")
+            
+            # Filter drugs by these manufacturer IDs
+            if manufacturer_ids:
+                drugs = list(db.drugs.find({'manufacturer_id': {'$in': manufacturer_ids}})
+                           .sort('created_at', -1)
+                           .skip(skip)
+                           .limit(limit))
+            else:
+                drugs = []
+            
+            print(f"DEBUG - Filtered drugs count: {len(drugs)}")
+        else:
+            drugs = Drug.get_all(skip=skip, limit=limit)
+            print(f"DEBUG - All drugs count: {len(drugs)}")
         
         return jsonify({
             'success': True,
@@ -94,6 +163,9 @@ def get_all_drugs(current_user):
         }), 200
         
     except Exception as e:
+        print(f"Error in get_all_drugs: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -104,12 +176,41 @@ def get_all_drugs(current_user):
 @role_required('admin')
 def get_all_scans(current_user):
     try:
+        from utils.database import get_database
         page = int(request.args.get('page', 1))
         limit = int(request.args.get('limit', 100))
         skip = (page - 1) * limit
+        owner_id = request.args.get('owner_id')  # Optional owner filter
         
-        scans = ScanLog.get_all(skip=skip, limit=limit)
-        total = ScanLog.count_all()
+        print(f"DEBUG - get_all_scans: owner_id={owner_id}, page={page}, limit={limit}")
+        
+        if owner_id:
+            # Find all manufacturers invited by this owner
+            db = get_database()
+            manufacturers = list(db.users.find({
+                'role': 'manufacturer',
+                'invited_by': owner_id
+            }, {'_id': 1}))
+            manufacturer_ids = [str(m['_id']) for m in manufacturers]
+            
+            print(f"DEBUG - Found {len(manufacturer_ids)} manufacturers for owner: {manufacturer_ids}")
+            
+            # Filter scans by manufacturer_id in drug_info
+            if manufacturer_ids:
+                scans = list(db.scan_logs.find({'drug_info.manufacturer_id': {'$in': manufacturer_ids}})
+                            .sort('scanned_at', -1)
+                            .skip(skip)
+                            .limit(limit))
+                total = db.scan_logs.count_documents({'drug_info.manufacturer_id': {'$in': manufacturer_ids}})
+            else:
+                scans = []
+                total = 0
+            
+            print(f"DEBUG - Filtered scans count: {len(scans)}, total: {total}")
+        else:
+            scans = ScanLog.get_all(skip=skip, limit=limit)
+            total = ScanLog.count_all()
+            print(f"DEBUG - All scans count: {len(scans)}, total: {total}")
         
         return jsonify({
             'success': True,
@@ -123,6 +224,9 @@ def get_all_scans(current_user):
         }), 200
         
     except Exception as e:
+        print(f"Error in get_all_scans: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)

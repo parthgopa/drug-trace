@@ -48,6 +48,12 @@ class ScanLog:
         return list(cursor)
 
     @staticmethod
+    def count_all():
+        """Count all scan logs"""
+        db = get_database()
+        return db[ScanLog.collection_name].count_documents({})
+
+    @staticmethod
     def get_statistics():
         db = get_database()
         

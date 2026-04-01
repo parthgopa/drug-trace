@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiAlertCircle, FiEye, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiSearch, FiAlertTriangle, FiCheckCircle, FiClock, FiRefreshCw, FiFilter } from 'react-icons/fi';
 import { adminAPI } from '../services/api';
 import Table from '../components/Table';
 import Pagination from '../components/Pagination';
+import Button from '../components/Button';
 import Loader from '../components/Loader';
 import Modal from '../components/Modal';
-import Button from '../components/Button';
 import { formatDate } from '../utils/formatters';
+import { useOwner } from '../context/OwnerContext';
 
 const Reports = () => {
+  const { selectedOwner } = useOwner();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,14 +22,13 @@ const Reports = () => {
 
   useEffect(() => {
     loadReports();
-  }, [currentPage, statusFilter]);
+  }, [currentPage, statusFilter, selectedOwner]);
 
   const loadReports = async () => {
     setLoading(true);
     try {
-      const response = await adminAPI.getAllReports(currentPage, 50, statusFilter || null);
+      const response = await adminAPI.getAllReports(currentPage, 50, statusFilter || null, selectedOwner?._id);
       if (response.success) {
-        // console.log(response);
         setReports(response.reports);
         setTotalPages(response.pagination.pages);
       }
@@ -142,7 +143,24 @@ const Reports = () => {
       <div className="page-header">
         <div className="page-title">
           <h1>Reports Management</h1>
-          <p>View and manage fake drug reports</p>
+          <p>View and manage all product reports</p>
+          {selectedOwner && (
+            <div style={{ 
+              marginTop: '0.5rem', 
+              padding: '0.5rem 1rem', 
+              backgroundColor: 'var(--primary-50)', 
+              border: '1px solid var(--primary-200)',
+              borderRadius: 'var(--radius-md)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <FiFilter style={{ color: 'var(--primary-600)' }} />
+              <span style={{ fontSize: '0.875rem', color: 'var(--primary-700)' }}>
+                Filtered by owner: <strong>{selectedOwner.name}</strong>
+              </span>
+            </div>
+          )}
         </div>
         <Button
           onClick={loadReports}

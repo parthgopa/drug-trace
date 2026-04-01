@@ -116,8 +116,10 @@ export const adminAPI = {
   },
 
   // Drugs Management
-  getAllDrugs: async (page = 1, limit = 50) => {
-    const response = await api.get('/admin/drugs', { params: { page, limit } });
+  getAllDrugs: async (page = 1, limit = 50, ownerId = null) => {
+    const params = { page, limit };
+    if (ownerId) params.owner_id = ownerId;
+    const response = await api.get('/admin/drugs', { params });
     return response.data;
   },
 
@@ -137,8 +139,11 @@ export const adminAPI = {
   },
 
   // Reports Management
-  getAllReports: async (page = 1, limit = 100) => {
-    const response = await api.get('/admin/reports', { params: { page, limit } });
+  getAllReports: async (page = 1, limit = 100, statusFilter = null, ownerId = null) => {
+    const params = { page, limit };
+    if (statusFilter) params.status = statusFilter;
+    if (ownerId) params.owner_id = ownerId;
+    const response = await api.get('/admin/reports', { params });
     return response.data;
   },
 
@@ -163,14 +168,18 @@ export const adminAPI = {
     return response.data;
   },
 
-  deleteInvitation: async (invitationId) => {
-    const response = await api.delete(`/admin/invitations/${invitationId}`);
+  deleteInvitation: async (invitationId, ownerId = null) => {
+    const params = {};
+    if (ownerId) params.owner_id = ownerId;
+    const response = await api.delete(`/admin/invitations/${invitationId}`, { params });
     return response.data;
   },
 
-  // Scans
-  getAllScans: async (page = 1, limit = 100) => {
-    const response = await api.get('/admin/scans', { params: { page, limit } });
+  // Scans Management
+  getAllScans: async (page = 1, limit = 100, ownerId = null) => {
+    const params = { page, limit };
+    if (ownerId) params.owner_id = ownerId;
+    const response = await api.get('/admin/scans', { params });
     return response.data;
   },
 };

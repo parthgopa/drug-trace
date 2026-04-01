@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiUserCheck, FiMail, FiCheckCircle, FiXCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiSearch, FiUserCheck, FiMail, FiCheckCircle, FiXCircle, FiRefreshCw, FiFilter } from 'react-icons/fi';
 import { adminAPI } from '../services/api';
 import Table from '../components/Table';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import { formatDate, getRoleBadgeColor } from '../utils/formatters';
+import { useOwner } from '../context/OwnerContext';
 
 const Owners = () => {
+  const { selectedOwner, selectOwner, clearOwner } = useOwner();
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -85,7 +87,22 @@ const Owners = () => {
     {
       header: 'Actions',
       cell: ({ row }) => (
-        <div className="action-buttons">
+        <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem' }}>
+          <Button
+            size="sm"
+            variant={selectedOwner?._id === row.original._id ? 'primary' : 'secondary'}
+            onClick={() => {
+              if (selectedOwner?._id === row.original._id) {
+                clearOwner();
+              } else {
+                selectOwner(row.original);
+              }
+            }}
+            icon={<FiFilter />}
+            title={selectedOwner?._id === row.original._id ? 'Clear filter' : 'Filter by this owner'}
+          >
+            {selectedOwner?._id === row.original._id ? 'Clear' : 'Select'}
+          </Button>
           {row.original.is_active ? (
             <button
               onClick={() => handleDeactivate(row.original._id)}
@@ -125,6 +142,37 @@ const Owners = () => {
         <div className="page-title">
           <h1>Owners Management</h1>
           <p>Manage all owner accounts in the system</p>
+          {selectedOwner && (
+            <div style={{ 
+              marginTop: '0.5rem', 
+              padding: '0.5rem 1rem', 
+              backgroundColor: 'var(--primary-50)', 
+              border: '1px solid var(--primary-200)',
+              borderRadius: 'var(--radius-md)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <FiFilter style={{ color: 'var(--primary-600)' }} />
+              <span style={{ fontSize: '0.875rem', color: 'var(--primary-700)' }}>
+                Filtering all pages by: <strong>{selectedOwner.name}</strong> ({selectedOwner.company_name})
+              </span>
+              <button
+                onClick={clearOwner}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary-600)',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  marginLeft: '0.5rem'
+                }}
+                title="Clear filter"
+              >
+                <FiXCircle size={16} />
+              </button>
+            </div>
+          )}
         </div>
         <Button
           onClick={loadOwners}
